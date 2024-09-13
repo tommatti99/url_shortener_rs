@@ -4,6 +4,7 @@ use dotenv::dotenv;
 use std::env;
 use crate::ps_conec::start_connection;
 use chrono::Utc;
+use rand::{distributions::Alphanumeric, Rng};
 
 pub fn short_link_exists(the_original_link: String) -> bool {
     let mut conec: PgConnection = start_connection();
@@ -52,18 +53,23 @@ fn incrase_clicks(the_short_link: String) -> () {
 }
 
 fn generate_random_chars() -> String {
-    let string_len = 
+    let rng = rand::thread_rng();
+    let string_len = rng.gen_range(5..=8);
+    let rand_str = (0..=string_len)
+        .map(|_| rng.sample(Alphanumeric) as char)
+        .collect();
+
+    return rand_str;
 }
 
 pub fn insert_new_link(the_original_link: String) -> bool {
     if if !short_link_exists(original_link) { 
         return false;
     }
-    
+
     let mut conec: PgConnection = start_connection();
     dotenv().ok();
     let domain = env::var("DOMAIN").expect("DOMAIN MUST BE SET");
-
     let random_link = format!("{}{}", domain, generate_random_chars());
 
     match diesel::insert_into(schema::db_links::dsl::db_links) 
@@ -81,6 +87,4 @@ pub fn insert_new_link(the_original_link: String) -> bool {
                 return false;
             }
         }
-
-    
 }   
