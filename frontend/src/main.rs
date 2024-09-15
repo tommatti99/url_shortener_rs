@@ -1,9 +1,11 @@
 use yew::prelude::*;
-use crate::components::{footer::Footer, form::Form, header::Header};
+use crate::components::{footer::Footer, redirect::Redireect, register::Register, header::Header};
 
+pub mod routes;
 pub mod components {
     pub mod footer;
-    pub mod form;
+    pub mod redirect;
+    pub mod register;
     pub mod header;
 }
 

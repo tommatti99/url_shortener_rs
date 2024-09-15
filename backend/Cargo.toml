@@ -14,3 +14,4 @@ chrono = "0.4.38"
 rand = "0.8.5"
 dotenv = "0.15.0"
 serde_with = {version = "3.9.0", features = ["chrono"] }
+yew-router = "0.18.0"
