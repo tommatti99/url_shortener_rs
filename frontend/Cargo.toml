@@ -1,0 +1,11 @@
+[package]
+name = "frontend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+yew = { version = "0.21.0", features = ["csr"] }
+reqwest = { version = "0.12.7", features = ["json"] }
+web-sys = { version = "0.3.70", features = ["Window", "HtmlInputElement"] }
+serde = "1.0.209"
+wasm-bindgen-futures = "0.4.43"
