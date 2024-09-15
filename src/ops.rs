@@ -1,22 +1,30 @@
-use crate::models::DbLinks;
 use diesel::prelude::*;
-use dotenv::dotenv;
-use std::env;
 use crate::ps_conec::start_connection;
+use crate::schema;
+use rand::{distributions::Alphanumeric, Rng};  
 use chrono::Utc;
-use rand::{distributions::Alphanumeric, Rng};
+
+pub fn clean_string(link: String) -> String {
+    let _ = link.replace("www.example.com/", "").replace("\"", "").replace("\'", "").to_lowercase().trim().to_string();
+    return link;
+}
 
 pub fn short_link_exists(the_original_link: String) -> bool {
     let mut conec: PgConnection = start_connection();
-    
-    let usr_exists: bool = schema::db_links::dsl::db_links
-    .select(diesel::exists(schema::db_links::dsl::short_link
-        .filter(schema::db_links::dsl::original_link.eq(the_original_link))))
-        .get_result::<bool>(&mut conec) {
-            .exception("Ocorreu um erro durante a geração do link")
-        };
-        
-        return usr_exists;
+
+    match 
+        diesel::select(diesel::dsl::
+            exists(schema::db_links::dsl::db_links
+            .filter(schema::db_links::dsl::original_link
+                .eq(the_original_link))))
+            .get_result::<bool>(&mut conec) {
+                Ok(usr_exists) => {
+                    return true;
+                },
+                Err(_) => {
+                    return false;
+                }            
+            };
     }
 
 
@@ -24,10 +32,12 @@ pub fn get_original_link(the_short_link: String) -> String {
     let mut conec: PgConnection = start_connection();
 
     let link = schema::db_links::dsl::db_links
-        .select(schema::db_links::dsl::the_original_link)
-        .filter(schema::dn_links::dsl::short_link.eq(the_short_link))
-        .first(&mut conec)
-        .exception("Ocorreu um erro durante a busca do link");
+        .select(schema::db_links::dsl::original_link)
+        .filter(schema::db_links::dsl::short_link.eq(the_short_link.clone()))
+        .first::<String>(&mut conec)
+        .unwrap();
+
+    let _ = incrase_clicks(the_short_link);
 
     return link;
 }
@@ -37,24 +47,34 @@ pub fn get_short_link(the_original_link: String) -> String {
 
     let link = schema::db_links::dsl::db_links
         .select(schema::db_links::dsl::short_link)
-        .filter(schema::dn_links::dsl::original_link.eq(the_original_link))
-        .first(&mut conec)
-        .exception("Ocorreu um erro durante a busca do link");
+        .filter(schema::db_links::dsl::original_link.eq(the_original_link))
+        .first::<String>(&mut conec)
+        .unwrap();
 
     return link;
 }
 
-fn incrase_clicks(the_short_link: String) -> () {
-    diesel::update(schema::db_links::dsl::db_links
-        .filter(schema::db_links::dsl::short_link.eq(the_short_link))
-        .set(schema::db_links::dsl::clicks.eq(schema::db_links::dsl::clicks + 1)))
-        .execute(&mut conec)
-        .exception(format!("ERRO AO ADICIONAR CLIQUE NAS ESTATISTICAS DO LINK: {}", the_short_link))
+fn incrase_clicks(the_short_link: String) -> bool {
+    let mut conec: PgConnection = start_connection();
+
+    match diesel::update(schema::db_links::dsl::db_links
+        .filter(schema::db_links::dsl::short_link.eq(the_short_link)))
+        .set(schema::db_links::dsl::clicks.eq(schema::db_links::dsl::clicks + 1))
+        .execute(&mut conec) {
+            Ok(_) => {
+                return true;
+            },
+            Err(_) => {
+                return false;
+            }
+        }
 }
 
 fn generate_random_chars() -> String {
-    let rng = rand::thread_rng();
+    let mut rng = rand::thread_rng();
+
     let string_len = rng.gen_range(5..=8);
+
     let rand_str = (0..=string_len)
         .map(|_| rng.sample(Alphanumeric) as char)
         .collect();
@@ -63,24 +83,23 @@ fn generate_random_chars() -> String {
 }
 
 pub fn insert_new_link(the_original_link: String) -> bool {
-    if if !short_link_exists(original_link) { 
+    if !short_link_exists(the_original_link.clone()) { 
         return false;
-    }
+    };
 
     let mut conec: PgConnection = start_connection();
-    dotenv().ok();
-    let domain = env::var("DOMAIN").expect("DOMAIN MUST BE SET");
-    let random_link = format!("{}{}", domain, generate_random_chars());
+
+    let random_link = format!("{}",generate_random_chars());
 
     match diesel::insert_into(schema::db_links::dsl::db_links) 
         .values((
-            schema::db_links::dsl::dt.eq(Utc::now())
-            schema::db_links::dsl::original_link.eq(the_original_link)
-            schema::db_links::dsl::short_link.eq(random_link)
+            schema::db_links::dsl::dt.eq(Utc::now().date_naive()),
+            schema::db_links::dsl::original_link.eq(the_original_link),
+            schema::db_links::dsl::short_link.eq(random_link),
             schema::db_links::dsl::clicks.eq(0)
         )) 
         .execute(&mut conec) {
-            Ok => {
+            Ok(_) => {
                 return true;
             },
             Err(_) => {
