@@ -1,17 +1,21 @@
 use rocket::serde::json::Json;
-use crate::models::{NewShortLinkResponse, GetOriginalLinkResponse};
+use crate::models::{GetOriginalLinkRequest, GetOriginalLinkResponse, NewShortLinkRequest, NewShortLinkResponse};
 
 //=================================================================================
-#[get("/new_short_link/<original_link>")]
-pub fn new_short_link_api(original_link: String) -> Json<NewShortLinkResponse> {
-    return Json(NewShortLinkResponse::create(original_link));
+#[post("/new_short_link", format = "json", data = "<new_short_link_data_json>")]
+pub fn new_short_link_api(new_short_link_data_json: Json<NewShortLinkRequest>) -> Json<NewShortLinkResponse> {
+    let new_short_link_data: NewShortLinkRequest = new_short_link_data_json.into_inner();
+
+    return Json(NewShortLinkResponse::create(new_short_link_data.link));
 }
 //=================================================================================
 
 
 //=================================================================================
-#[get("/gt/<short_link>")]
-pub fn get_original_link_api(short_link: String) -> Json<GetOriginalLinkResponse> {
-    return Json(GetOriginalLinkResponse::get(short_link));
+#[post("/gt", format = "json", data = "<get_link_data_json>")]
+pub fn get_original_link_api(get_link_data_json: Json<GetOriginalLinkRequest>) -> Json<GetOriginalLinkResponse> {
+    let get_link_data: GetOriginalLinkRequest = get_link_data_json.into_inner();
+
+    return Json(GetOriginalLinkResponse::get(get_link_data.short_link));
 }
 //=================================================================================
