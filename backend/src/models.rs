@@ -37,8 +37,6 @@ impl NewShortLinkResponse {
 }
 
 
-
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetOriginalLinkResponse {
     pub status: bool,

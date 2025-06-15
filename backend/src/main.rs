@@ -19,6 +19,6 @@ fn rocket() -> _ {
         .merge(("address", "0.0.0.0"));
 
     rocket::custom(figment)
-        .mount("/", routes![new_short_link_api])
-        .mount("/", routes![get_original_link_api])
+        .mount("/api/", routes![new_short_link_api])
+        .mount("/api/", routes![get_original_link_api])
 }
