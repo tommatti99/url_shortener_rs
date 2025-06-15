@@ -207,6 +207,7 @@ const shortenUrl = async () => {
     shortenedUrl.value = `${window.location.origin}/#/${newShortUrl}` 
     
     const savedChars = originalUrl.value.length - newShortUrl.length
+    console.log(originalUrl.value.length)
     stats.value = {
       saves: `${savedChars} chars`,
       percentage: Math.round((savedChars / originalUrl.value.length) * 100)

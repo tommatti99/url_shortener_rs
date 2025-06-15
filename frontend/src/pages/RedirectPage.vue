@@ -30,7 +30,7 @@
                 window.location.href = response.data.data.original_link;
             }
         } catch(error) {
-            //window.location.href = window.location.origin
+            window.location.href = window.location.origin
         }
     }
 </script>
