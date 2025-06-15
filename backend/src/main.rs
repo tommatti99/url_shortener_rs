@@ -3,7 +3,9 @@ pub mod api;
 pub mod models;
 pub mod ops;
 pub mod schema;
-use crate::ps_conec::update_migrations;
+pub mod cors;
+
+use crate::{cors::cors_rules, ps_conec::update_migrations};
 
 #[macro_use] extern crate rocket;
 use api::{new_short_link_api, get_original_link_api};
@@ -21,4 +23,5 @@ fn rocket() -> _ {
     rocket::custom(figment)
         .mount("/api/", routes![new_short_link_api])
         .mount("/api/", routes![get_original_link_api])
+        .attach(cors_rules())
 }

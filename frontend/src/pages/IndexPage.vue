@@ -125,8 +125,9 @@
 import { ref, computed, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import FloatingCircles from 'src/components/FloatingCircles.vue';
+import { api } from 'src/boot/axios';
 
-const CREATE_LINK_API = import.meta.env.VITE_CREATE_LINK_API?.replace(/"/g, '') ?? '';
+const CREATE_LINK_API = '/api/new_short_link';//import.meta.env.VITE_CREATE_LINK_API?.replace(/"/g, '') ?? ''; 
 
 const $q = useQuasar()
 
@@ -162,22 +163,21 @@ const truncateUrl = (url, maxLength) => {
 async function getShortUrl() {
   try {
     const payload = {
-      original_lnk: originalUrl
+      original_lnk: originalUrl.value
     }
 
-    const response = await api.get(CREATE_LINK_API, {params: payload});
+    const response = await api.post(CREATE_LINK_API, payload, {
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-    if (response.status == 200) {
+    console.log(response);
+    if (response.status === 200) {
       return response.data.short_lnk
     }
-    $q.notify({
-      message: `Ops... Ocorreu um erro ao encurtar essa URL. Por favor tente novamente mais tarde`,
-      type: 'negative',
-      position: 'top-right',
-      timeout: 4000,
-      actions: [{ icon: 'close', color: 'white' }]
-    }) 
   } catch {
+    console.error('Erro no post:', error);
     $q.notify({
       message: `Ops... Ocorreu um erro ao encurtar essa URL. Por favor tente novamente mais tarde`,
       type: 'negative',
@@ -216,13 +216,7 @@ const shortenUrl = async () => {
     })
 
   } catch (error) {
-    $q.notify({
-      message: `Ops! Essa URL é inválida`,
-      type: 'negative',
-      position: 'top-right',
-      timeout: 4000,
-      actions: [{ icon: 'close', color: 'white' }]
-    })
+
   } finally {
     loading.value = false
   }

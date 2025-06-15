@@ -1,7 +1,7 @@
 import { defineBoot } from '#q-app/wrappers';
 import axios, { type AxiosInstance } from 'axios';
 
-const BASE_URL = import.meta.env.VITE_BASE_URL; 
+const BASE_URL = 'https://urlshortenerbackend-production.up.railway.app'; //import.meta.env.VITE_BASE_URL; 
 
 declare module 'vue' {
   interface ComponentCustomProperties {

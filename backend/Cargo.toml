@@ -16,6 +16,7 @@ dotenv = "0.15.0"
 serde_with = {version = "3.9.0", features = ["chrono"] }
 yew-router = "0.18.0"
 diesel_migrations = "2.2.0"
+rocket_cors = "0.6.0"
 
 [[bin]]
 name = "backend"
