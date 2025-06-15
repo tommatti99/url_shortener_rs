@@ -129,7 +129,7 @@ import { useQuasar } from 'quasar'
 import FloatingCircles from 'src/components/FloatingCircles.vue';
 import { api } from 'src/boot/axios';
 import { useRouter } from 'vue-router';
-const CREATE_LINK_API = '/api/new_short_link';//import.meta.env.VITE_CREATE_LINK_API?.replace(/"/g, '') ?? ''; 
+const CREATE_LINK_API = import.meta.env.VITE_CREATE_LINK_API?.replace(/"/g, '') ?? ''; 
 
 const $q = useQuasar()
 const router = useRouter();
@@ -204,7 +204,7 @@ const shortenUrl = async () => {
   try {
     const newShortUrl = await getShortUrl()
 
-    shortenedUrl.value = `${window.location.origin}/${newShortUrl}` 
+    shortenedUrl.value = `${window.location.origin}/#/${newShortUrl}` 
     
     const savedChars = originalUrl.value.length - newShortUrl.length
     stats.value = {

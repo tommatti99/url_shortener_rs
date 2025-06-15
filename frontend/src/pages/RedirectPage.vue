@@ -5,35 +5,32 @@
 </template>
 
 <script setup lang="ts">
+    import { useQuasar } from 'quasar';
     import { api } from 'src/boot/axios';
     import { onMounted } from 'vue';
     import { useRouter } from 'vue-router';
 
     const GET_FULL_LINK_API = import.meta.env.VITE_GET_FULL_LINK_API?.replace(/"/g, '') ?? '';
     const router = useRouter();
+    const $q = useQuasar()
 
     onMounted( async () => {
-        const fullLink: string = await getFullLink();
-
-        window.location.href = fullLink;
+        await goToFullLink();
     })
 
 
-    async function getFullLink() {
+    async function goToFullLink() {
         try {
             const payload = {
-                short_lnk_url: router.currentRoute.value.path.replace(/[^a-zA-Z0-9]/g, '')
+                short_link: router.currentRoute.value.path.replace(/[^a-zA-Z0-9]/g, '')
             }
-
-            const response = await api.get(GET_FULL_LINK_API, {params: payload} );
+            const response = await api.post(GET_FULL_LINK_API, payload );
 
             if (response.status == 200) {
-                return response.data.short_lnk
+                window.location.href = response.data.data.original_link;
             }
-            return 'router.currentRoute.value.query'
-
-        } catch {
-            return 'router.currentRoute.value.query'
+        } catch(error) {
+            //window.location.href = window.location.origin
         }
     }
 </script>
