@@ -51,7 +51,7 @@
           </q-card-section>
         </q-card>
 
-        <q-card v-if="showResult" class="result-card shadow-24" v-animate-css="'fadeInUp'">
+        <q-card v-if="showResult" class="result-card shadow-24">
           <q-card-section class="q-pa-xl">
             <div class="result-header q-mb-lg text-center">
               <div class="success-icon q-mb-sm">
@@ -104,10 +104,12 @@
 
             <div class="stats-container q-mt-lg">
               <div class="stats-grid">
+
                 <div class="stat-item">
                   <div class="stat-number">{{ stats.saves }}</div>
                   <div class="stat-label">Economia</div>
                 </div>
+
                 <div class="stat-item">
                   <div class="stat-number">{{ stats.percentage }}%</div>
                   <div class="stat-label">Redução</div>
@@ -126,11 +128,11 @@ import { ref, computed, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import FloatingCircles from 'src/components/FloatingCircles.vue';
 import { api } from 'src/boot/axios';
-
+import { useRouter } from 'vue-router';
 const CREATE_LINK_API = '/api/new_short_link';//import.meta.env.VITE_CREATE_LINK_API?.replace(/"/g, '') ?? ''; 
 
 const $q = useQuasar()
-
+const router = useRouter();
 const originalUrl = ref('')
 const shortenedUrl = ref('')
 const loading = ref(false)
@@ -163,21 +165,26 @@ const truncateUrl = (url, maxLength) => {
 async function getShortUrl() {
   try {
     const payload = {
-      original_lnk: originalUrl.value
+      link: originalUrl.value
     }
 
-    const response = await api.post(CREATE_LINK_API, payload, {
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+    const response = await api.post(CREATE_LINK_API, payload);
 
-    console.log(response);
     if (response.status === 200) {
-      return response.data.short_lnk
+      return response.data.data.short_link;
     }
+    
+    $q.notify({
+        message: 'Resposta inesperada do servidor.',
+        type: 'negative',
+        position: 'top-right',
+        timeout: 4000,
+        actions: [{ icon: 'close', color: 'white' }]
+      });
+
+    return undefined;
   } catch {
-    console.error('Erro no post:', error);
+    
     $q.notify({
       message: `Ops... Ocorreu um erro ao encurtar essa URL. Por favor tente novamente mais tarde`,
       type: 'negative',
@@ -185,6 +192,7 @@ async function getShortUrl() {
       timeout: 4000,
       actions: [{ icon: 'close', color: 'white' }]
     })
+    return undefined;
   }
 }
 
@@ -195,8 +203,8 @@ const shortenUrl = async () => {
   
   try {
     const newShortUrl = await getShortUrl()
-    
-    shortenedUrl.value = newShortUrl
+
+    shortenedUrl.value = `${window.location.origin}/${newShortUrl}` 
     
     const savedChars = originalUrl.value.length - newShortUrl.length
     stats.value = {
@@ -450,7 +458,7 @@ const shareUrl = async () => {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   text-align: center;
 }
