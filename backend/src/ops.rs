@@ -18,7 +18,7 @@ pub fn short_link_exists(the_original_link: String) -> bool {
             .filter(schema::db_links::dsl::original_link
                 .eq(the_original_link))))
             .get_result::<bool>(&mut conec) {
-                Ok(usr_exists) => {
+                Ok(_) => {
                     return true;
                 },
                 Err(_) => {
