@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use crate::{models, ops::{clean_string, get_original_link, get_short_link, insert_new_link, short_link_exists}};
+use crate::{ops::{clean_string, get_original_link, get_short_link, insert_new_link, short_link_exists}};
 use rocket::serde::{Deserialize, Serialize};
 use diesel::{Insertable, Queryable};
 
@@ -25,30 +25,22 @@ pub struct DataNewShortLinkResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NewShortLinkResponse {
-    status: String,
-    message: String,
-    data: Option<DataNewShortLinkResponse>
+    pub status: String,
+    pub message: String,
+    pub data: Option<DataNewShortLinkResponse>
 }
 
 impl NewShortLinkResponse {
-    pub fn create(original_lnk: String) -> Self {
+    pub fn create(original_lnk: String) -> Option<DataNewShortLinkResponse> {
         let clear_original_link = clean_string(original_lnk);
 
-        if !insert_new_link(clear_original_link.clone()) {
-            return Self {
-                status: "error".to_string(),
-                message: "ERRO: nao foi possivel criar o link".to_string(),     
-                data: None
-            }
-        }
-        
-        let short_link: String = get_short_link(clear_original_link);
+        if insert_new_link(clear_original_link.clone()) {
+            let short_lnk: String = get_short_link(clear_original_link);
 
-        return Self {
-            status: "success".to_string(),
-            message: "sucesso ao recuperar o link".to_string(),
-            data: Some(models::DataNewShortLinkResponse { short_link: short_link })
+            return Some(DataNewShortLinkResponse { short_link: short_lnk} );
         }
+
+        return None;
     }
 }
 
@@ -65,28 +57,21 @@ pub struct DataGetOriginalLinkResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GetOriginalLinkResponse {
-    status: String,
-    message: String,
-    data: Option<DataGetOriginalLinkResponse>
+    pub status: String,
+    pub message: String,
+    pub data: Option<DataGetOriginalLinkResponse>
 }
+
 impl GetOriginalLinkResponse {
-    pub fn get(short_link: String) -> Self {
+    pub fn get(short_link: String) -> Option<DataGetOriginalLinkResponse> {
         let clear_short_link = clean_string(short_link);
 
         if short_link_exists(clear_short_link.clone()) {
             let or_link: String = get_original_link(clear_short_link);
 
-            return Self { 
-                status: "success".to_string(),
-                message: "sucesso ao recuperar o link".to_string(),
-                data: Some(DataGetOriginalLinkResponse { original_link: or_link })
-            }
+            return Some(DataGetOriginalLinkResponse { original_link: or_link });
         };
         
-        return Self {
-            status: "error".to_string(),
-            message: "ERRO: link nao encontrado".to_string(),     
-            data: None
-        }
+        return None;
     }
 }
